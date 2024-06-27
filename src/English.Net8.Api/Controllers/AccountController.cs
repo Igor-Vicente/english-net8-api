@@ -1,6 +1,8 @@
 ﻿using English.Net8.Api.Configuration;
 using English.Net8.Api.Dtos;
 using English.Net8.Api.Extensions;
+using English.Net8.Api.Models;
+using English.Net8.Api.Repository.Interfaces;
 using English.Net8.Api.Services.Mailing;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
@@ -21,6 +23,7 @@ namespace English.Net8.Api.Controllers
     {
         private readonly UserManager<MongoUser> _userManager;
         private readonly SignInManager<MongoUser> _signInManager;
+        private readonly IUserRepository _userRepository;
         private readonly ILogger<AccountController> _logger;
         private readonly AuthSettings _authSettings;
         private readonly IEmailSender _emailSender;
@@ -29,27 +32,29 @@ namespace English.Net8.Api.Controllers
                                  SignInManager<MongoUser> signInManager,
                                  ILogger<AccountController> logger,
                                  IOptions<AuthSettings> authSettings,
-                                 IEmailSender emailSender)
+                                 IEmailSender emailSender,
+                                 IUserRepository userRepository)
         {
             _userManager = userManager;
             _signInManager = signInManager;
             _logger = logger;
             _authSettings = authSettings.Value;
             _emailSender = emailSender;
+            _userRepository = userRepository;
         }
 
         [AllowAnonymous]
         [HttpPost("signin")]
         [ProducesDefaultResponseType(typeof(ResponseDto))]
-        public async Task<IActionResult> Login(LoginDto loginDto)
+        public async Task<IActionResult> Login(SigninDto loginDto)
         {
             if (!ModelState.IsValid) CustomResponse(ModelState);
 
             var result = await _signInManager.PasswordSignInAsync(loginDto.Email, loginDto.Password, false, true);
             if (result.Succeeded)
             {
-                var user = await _userManager.FindByEmailAsync(loginDto.Email);
-                var claims = await GetUserClaimsAsync(user);
+                var account = await _userManager.FindByEmailAsync(loginDto.Email);
+                var claims = await GetUserClaimsAsync(account);
                 var token = GenerateJwt(claims);
                 SetCookiesInResponse(token);
                 return CustomResponse();
@@ -68,13 +73,14 @@ namespace English.Net8.Api.Controllers
         [AllowAnonymous]
         [HttpPost("signup")]
         [ProducesDefaultResponseType(typeof(ResponseDto))]
-        public async Task<IActionResult> Register(RegisterDto registerDto)
+        public async Task<IActionResult> Register(SignupDto registerDto)
         {
             if (!ModelState.IsValid) return CustomResponse(ModelState);
 
-            var user = new MongoUser { UserName = registerDto.Email, Email = registerDto.Email, EmailConfirmed = false };
+            var user = new User { Name = registerDto.Name, Email = registerDto.Email };
+            var account = new MongoUser { Id = user.Id, UserName = registerDto.Email, Email = registerDto.Email, EmailConfirmed = false };
 
-            var result = await _userManager.CreateAsync(user, registerDto.Password);
+            var result = await _userManager.CreateAsync(account, registerDto.Password);
 
             if (!result.Succeeded)
             {
@@ -82,36 +88,21 @@ namespace English.Net8.Api.Controllers
                 return CustomResponse();
             }
 
+            await _userRepository.InsertAsync(user);
             _logger.LogInformation("User created a new account with password.");
+            var code = await _userManager.GenerateEmailConfirmationTokenAsync(account);
+            var callbackUrl = Url.EmailConfirmationLink(account.Id.ToString(), code, Request.Scheme);
+            //await _emailSender.SendEmailConfirmationAsync(account.Email, callbackUrl);
 
-            var code = await _userManager.GenerateEmailConfirmationTokenAsync(user);
-            var callbackUrl = Url.EmailConfirmationLink(user.Id.ToString(), code, Request.Scheme);
-            await _emailSender.SendEmailConfirmationAsync(user.Email, callbackUrl);
-
-            await _signInManager.SignInAsync(user, isPersistent: false);
-
+            var claims = await GetUserClaimsAsync(account);
+            var token = GenerateJwt(claims);
+            SetCookiesInResponse(token);
             return CustomResponse();
         }
 
-
-        [HttpGet("user")]
-        public async Task<IActionResult> GetUserAccoutAsync()
-        {
-            if (Request.Cookies.TryGetValue(_authSettings.AuthCookieName, out var token))
-            {
-                var jwt = new JwtSecurityTokenHandler().ReadToken(token) as JwtSecurityToken;
-                var account = await _userManager.FindByIdAsync(jwt.Subject);
-
-                /*TO DO: GET THE USER INSTEAD OF THE ACCOUNT*/
-                return CustomResponse(account);
-            }
-
-            NotifierError("Unable to get authentication cookie");
-            return CustomResponse();
-        }
-
-        [HttpGet]
+        [HttpGet("email-confirmation")]
         [AllowAnonymous]
+        [ProducesDefaultResponseType(typeof(ResponseDto))]
         public async Task<IActionResult> ConfirmEmail(string userId, string code)
         {
             if (userId == null || code == null)
@@ -130,6 +121,7 @@ namespace English.Net8.Api.Controllers
 
 
         [HttpGet("logout")]
+        [ProducesDefaultResponseType(typeof(ResponseDto))]
         public async Task<IActionResult> Logout()
         {
             HttpContext.Response.Cookies.Append(_authSettings.AuthCookieName, "", new CookieOptions
@@ -148,7 +140,7 @@ namespace English.Net8.Api.Controllers
                 IsEssential = true,
                 SameSite = SameSiteMode.None,
             });
-            return Ok();
+            return CustomResponse();
         }
 
         private string GenerateJwt(IEnumerable<Claim> claims)
@@ -175,7 +167,6 @@ namespace English.Net8.Api.Controllers
             claims.Add(new Claim(JwtRegisteredClaimNames.Iat, ToUnixEpochDate(DateTime.UtcNow).ToString(), ClaimValueTypes.Integer64));
             return claims;
         }
-
         private void SetCookiesInResponse(string token)
         {
             HttpContext.Response.Cookies.Append(_authSettings.AuthCookieName, token, new CookieOptions
@@ -195,7 +186,6 @@ namespace English.Net8.Api.Controllers
                 SameSite = SameSiteMode.None,
             });
         }
-
         private static long ToUnixEpochDate(DateTime date)
             => (long)Math.Round((date.ToUniversalTime() - new DateTimeOffset(1970, 1, 1, 0, 0, 0, TimeSpan.Zero)).TotalSeconds);
 

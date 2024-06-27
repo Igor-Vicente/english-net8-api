@@ -10,6 +10,14 @@
         public string ExpiresCookieName { get; set; }
         public string AcceptedDomainsCors { get; set; }
     }
+    public class MongoSettings
+    {
+        public string DatabaseName { get; set; }
+        public string ConnectionString { get; set; }
+        public string AccountsCollection { get; set; }
+        public string RolesCollection { get; set; }
+        public string UsersCollection { get; set; }
+    }
 
     public class EmailProviderSettings
     {

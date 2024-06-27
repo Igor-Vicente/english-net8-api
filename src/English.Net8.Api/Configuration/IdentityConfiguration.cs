@@ -4,18 +4,17 @@ using Microsoft.IdentityModel.Tokens;
 using MongoDB.Bson;
 using Store.MongoDb.Identity.Extensions;
 using Store.MongoDb.Identity.Models;
-using Store.MongoDb.Identity.Utils;
 using System.Text;
 
 namespace English.Net8.Api.Configuration
 {
-    public static class IdentityMiddleware
+    public static class IdentityConfiguration
     {
         public static IServiceCollection AddIdentityConfiguration(this IServiceCollection services, IConfiguration configuration)
         {
             var authSection = configuration.GetSection("AuthSettings");
             var mongoSection = configuration.GetSection("MongoSettings");
-            var mongoSettings = mongoSection.Get<MongoOptions>();
+            var mongoSettings = mongoSection.Get<MongoSettings>();
             var authSettings = authSection.Get<AuthSettings>();
 
             services.AddIdentity<MongoUser, MongoRole>(SetIdentityOptionsTest)
@@ -24,7 +23,7 @@ namespace English.Net8.Api.Configuration
                 {
                     o.ConnectionString = mongoSettings.ConnectionString;
                     o.DatabaseName = mongoSettings.DatabaseName;
-                    o.UsersCollection = mongoSettings.UsersCollection;
+                    o.UsersCollection = mongoSettings.AccountsCollection;
                     o.RolesCollection = mongoSettings.RolesCollection;
                 });
 

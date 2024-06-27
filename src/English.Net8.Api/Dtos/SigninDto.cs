@@ -2,7 +2,7 @@
 
 namespace English.Net8.Api.Dtos
 {
-    public class LoginDto
+    public class SigninDto
     {
         [Required]
         [EmailAddress]

@@ -9,13 +9,12 @@ namespace English.Net8.Api
         {
             var builder = WebApplication.CreateBuilder(args);
 
+            builder.Services.RegisterConfigurations(builder.Configuration);
             builder.Services.AddControllers();
             builder.Services.AddIdentityConfiguration(builder.Configuration);
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
             builder.Services.ResolveDependencies();
-            builder.Services.RegisterConfigurations(builder.Configuration);
-
 
             var app = builder.Build();
 

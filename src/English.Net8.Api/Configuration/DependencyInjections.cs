@@ -1,4 +1,6 @@
-﻿using English.Net8.Api.Services.Mailing;
+﻿using English.Net8.Api.Repository;
+using English.Net8.Api.Repository.Interfaces;
+using English.Net8.Api.Services.Mailing;
 
 namespace English.Net8.Api.Configuration
 {
@@ -6,7 +8,10 @@ namespace English.Net8.Api.Configuration
     {
         public static IServiceCollection ResolveDependencies(this IServiceCollection services)
         {
+            services.AddSingleton<IUserRepository, UserRepository>();
+
             services.AddSingleton<IEmailSender, EmailSender>();
+
             return services;
         }
     }
