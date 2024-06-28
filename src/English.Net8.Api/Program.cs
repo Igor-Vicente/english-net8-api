@@ -1,5 +1,6 @@
 
 using English.Net8.Api.Configuration;
+using System.Reflection;
 
 namespace English.Net8.Api
 {
@@ -8,6 +9,14 @@ namespace English.Net8.Api
         public static void Main(string[] args)
         {
             var builder = WebApplication.CreateBuilder(args);
+            #region Definindo appSettings.json
+            builder.Configuration
+                .SetBasePath(builder.Environment.ContentRootPath)
+                .AddJsonFile("appsettings.json", true, true)
+                .AddJsonFile($"appsettings.{builder.Environment.EnvironmentName}.json", true, true)
+                .AddEnvironmentVariables()
+                .AddUserSecrets(Assembly.GetExecutingAssembly(), true);
+            #endregion
 
             builder.Services.RegisterConfigurations(builder.Configuration);
             builder.Services.AddControllers();
