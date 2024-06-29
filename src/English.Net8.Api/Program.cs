@@ -1,5 +1,6 @@
 
 using English.Net8.Api.Configuration;
+using English.Net8.Api.Utils;
 using System.Reflection;
 
 namespace English.Net8.Api
@@ -27,6 +28,7 @@ namespace English.Net8.Api
 
             var app = builder.Build();
 
+            app.UseMiddleware<ExceptionMiddleware>();
             app.UseSwagger();
             app.UseSwaggerUI();
             app.UseHttpsRedirection();
