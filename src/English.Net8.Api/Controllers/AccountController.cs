@@ -4,6 +4,7 @@ using English.Net8.Api.Extensions;
 using English.Net8.Api.Models;
 using English.Net8.Api.Repository.Interfaces;
 using English.Net8.Api.Services.Mailing;
+using English.Net8.Api.Utils;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -45,37 +46,38 @@ namespace English.Net8.Api.Controllers
 
         [AllowAnonymous]
         [HttpPost("signin")]
-        [ProducesDefaultResponseType(typeof(ResponseDto))]
-        public async Task<IActionResult> Login(SigninDto loginDto)
+        [ProducesResponseType(typeof(SuccessResponseDto<UserResponseDto>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ErrorResponseDto), StatusCodes.Status400BadRequest)]
+        public async Task<ActionResult<SuccessResponseDto<UserResponseDto>>> Login(SigninDto loginDto)
         {
-            if (!ModelState.IsValid) CustomResponse(ModelState);
+            if (!ModelState.IsValid) return ErrorResponse(ModelState);
 
             var result = await _signInManager.PasswordSignInAsync(loginDto.Email, loginDto.Password, false, true);
             if (result.Succeeded)
             {
                 var account = await _userManager.FindByEmailAsync(loginDto.Email);
+                var user = await _userRepository.FindByIdAsync(account.Id);
+
                 var claims = await GetUserClaimsAsync(account);
                 var token = GenerateJwt(claims);
                 SetCookiesInResponse(token);
-                return CustomResponse();
+
+                return SuccessResponse(UserConverter.ToResponseUser(user));
             }
 
             if (result.IsLockedOut)
-            {
-                NotifierError("The user has been temporarily blocked due to invalid attempts");
-                return CustomResponse();
-            }
+                return ErrorResponse("The user has been temporarily blocked due to invalid attempts");
 
-            NotifierError("Username or password is invalid");
-            return CustomResponse();
+            return ErrorResponse("Username or password is invalid");
         }
 
         [AllowAnonymous]
         [HttpPost("signup")]
-        [ProducesDefaultResponseType(typeof(ResponseDto))]
-        public async Task<IActionResult> Register(SignupDto registerDto)
+        [ProducesResponseType(typeof(SuccessResponseDto<UserResponseDto>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ErrorResponseDto), StatusCodes.Status400BadRequest)]
+        public async Task<ActionResult<SuccessResponseDto<UserResponseDto>>> Register(SignupDto registerDto)
         {
-            if (!ModelState.IsValid) return CustomResponse(ModelState);
+            if (!ModelState.IsValid) return ErrorResponse(ModelState);
 
             var user = new User { Name = registerDto.Name, Email = registerDto.Email };
             var account = new MongoUser { Id = user.Id, UserName = registerDto.Email, Email = registerDto.Email, EmailConfirmed = false };
@@ -83,46 +85,42 @@ namespace English.Net8.Api.Controllers
             var result = await _userManager.CreateAsync(account, registerDto.Password);
 
             if (!result.Succeeded)
-            {
-                NotifierError(result.Errors.Select(e => e.Description));
-                return CustomResponse();
-            }
+                return ErrorResponse(result.Errors.Select(e => e.Description));
 
             await _userRepository.InsertAsync(user);
-            _logger.LogInformation("User created a new account with password.");
+            _logger.LogInformation($"User {user.Id} created a new account with password.");
             var code = await _userManager.GenerateEmailConfirmationTokenAsync(account);
             var callbackUrl = Url.EmailConfirmationLink(account.Id.ToString(), code, Request.Scheme);
-            await _emailSender.SendEmailConfirmationAsync(account.Email, callbackUrl);
+            //await _emailSender.SendEmailConfirmationAsync(account.Email, callbackUrl);
 
             var claims = await GetUserClaimsAsync(account);
             var token = GenerateJwt(claims);
             SetCookiesInResponse(token);
-            return CustomResponse();
+            return SuccessResponse(UserConverter.ToResponseUser(user));
         }
 
-        [HttpGet("email-confirmation")]
         [AllowAnonymous]
-        [ProducesDefaultResponseType(typeof(ResponseDto))]
-        public async Task<IActionResult> ConfirmEmail(string userId, string code)
+        [HttpGet("email-confirmation")]
+        [ProducesResponseType(typeof(SuccessResponseDto), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ErrorResponseDto), StatusCodes.Status400BadRequest)]
+        public async Task<ActionResult<SuccessResponseDto>> ConfirmEmail(string userId, string code)
         {
             if (userId == null || code == null)
-            {
-                NotifierError("Userid or code was not provided");
-                return CustomResponse();
-            }
+                return ErrorResponse("The link is invalid");
+
             var user = await _userManager.FindByIdAsync(userId);
+
             if (user == null)
-            {
-                throw new ApplicationException($"Unable to load user with ID '{userId}'.");
-            }
+                throw new ApplicationException($"Unable to find the user with ID '{userId}'.");
+
             var result = await _userManager.ConfirmEmailAsync(user, code);
-            return CustomResponse();
+            return SuccessResponse();
         }
 
 
         [HttpGet("logout")]
-        [ProducesDefaultResponseType(typeof(ResponseDto))]
-        public async Task<IActionResult> Logout()
+        [ProducesResponseType(typeof(SuccessResponseDto), StatusCodes.Status200OK)]
+        public async Task<ActionResult<SuccessResponseDto>> Logout()
         {
             HttpContext.Response.Cookies.Append(_authSettings.AuthCookieName, "", new CookieOptions
             {
@@ -140,7 +138,7 @@ namespace English.Net8.Api.Controllers
                 IsEssential = true,
                 SameSite = SameSiteMode.None,
             });
-            return CustomResponse();
+            return SuccessResponse();
         }
 
         private string GenerateJwt(IEnumerable<Claim> claims)

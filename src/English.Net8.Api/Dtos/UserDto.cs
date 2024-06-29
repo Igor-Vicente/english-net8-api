@@ -24,7 +24,7 @@ namespace English.Net8.Api.Dtos
         public string? City { get; set; }
     }
 
-    public class ResponseUserDto
+    public class UserResponseDto
     {
         public string Id { get; set; }
         public string Name { get; set; }

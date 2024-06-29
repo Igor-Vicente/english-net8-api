@@ -7,40 +7,41 @@ namespace English.Net8.Api.Controllers
     [ApiController]
     public abstract class MainController : ControllerBase
     {
-        protected ICollection<string> Errors { get; set; } = new List<string>();
+        protected ICollection<string> Errors = new List<string>();
 
-        protected IActionResult CustomResponse(object result = null)
+        protected ActionResult<SuccessResponseDto<T>> SuccessResponse<T>(T data)
         {
-            if (!Errors.Any())
-            {
-                return Ok(new ResponseDto
-                {
-                    Success = true,
-                    Data = result
-                });
-            }
-            else
-            {
-                return BadRequest(new ResponseDto
-                {
-                    Success = false,
-                    Errors = Errors
-                });
-            }
+            return Ok(new SuccessResponseDto<T>(data));
         }
 
-        protected IActionResult CustomResponse(ModelStateDictionary modelState)
+        protected ActionResult<SuccessResponseDto> SuccessResponse()
         {
-            foreach (var error in modelState.Values.SelectMany(x => x.Errors))
-                NotifierError(error.ErrorMessage);
-            return CustomResponse();
+            return Ok(new SuccessResponseDto());
         }
 
-        protected void NotifierError(string error) => Errors.Add(error);
-        protected void NotifierError(IEnumerable<string> errors)
+        protected ActionResult ErrorResponse(string errorMessage)
+        {
+            Errors.Add(errorMessage);
+            return ErrorResponse();
+        }
+
+        protected ActionResult ErrorResponse(IEnumerable<string> errors)
         {
             foreach (var error in errors)
                 Errors.Add(error);
+            return ErrorResponse();
+        }
+
+        protected ActionResult ErrorResponse(ModelStateDictionary modelState)
+        {
+            foreach (var error in modelState.Values.SelectMany(e => e.Errors))
+                Errors.Add(error.ErrorMessage);
+            return ErrorResponse();
+        }
+
+        private ActionResult ErrorResponse()
+        {
+            return BadRequest(new ErrorResponseDto(Errors));
         }
     }
 }

@@ -5,9 +5,9 @@ namespace English.Net8.Api.Utils
 {
     public static class UserConverter
     {
-        public static ResponseUserDto ToResponseUser(User user)
+        public static UserResponseDto ToResponseUser(User user)
         {
-            return new ResponseUserDto
+            return new UserResponseDto
             {
                 AvatarUrl = user.AvatarUrl,
                 Bio = user.Bio,
@@ -21,9 +21,9 @@ namespace English.Net8.Api.Utils
             };
         }
 
-        public static IEnumerable<ResponseUserDto> ToResponseUser(IEnumerable<User> users)
+        public static IEnumerable<UserResponseDto> ToResponseUser(IEnumerable<User> users)
         {
-            var usersDto = new List<ResponseUserDto>();
+            var usersDto = new List<UserResponseDto>();
             foreach (var user in users)
             {
                 var userDto = ToResponseUser(user);

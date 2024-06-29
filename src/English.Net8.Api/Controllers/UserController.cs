@@ -26,8 +26,9 @@ namespace English.Net8.Api.Controllers
         }
 
         [HttpGet("authenticated")]
-        [ProducesDefaultResponseType(typeof(ResponseDto))]
-        public async Task<IActionResult> GetUserAsync()
+        [ProducesResponseType(typeof(SuccessResponseDto<UserResponseDto>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ErrorResponseDto), StatusCodes.Status400BadRequest)]
+        public async Task<ActionResult<SuccessResponseDto<UserResponseDto>>> GetUserAsync()
         {
             if (Request.Cookies.TryGetValue(_authSettings.AuthCookieName, out var cookieToken))
             {
@@ -36,20 +37,19 @@ namespace English.Net8.Api.Controllers
                     throw new ArgumentNullException(nameof(jwt));
 
                 var user = await _userRepository.FindByIdAsync(id);
-                var userDto = UserConverter.ToResponseUser(user);
 
-                return CustomResponse(userDto);
+                return SuccessResponse(UserConverter.ToResponseUser(user));
             }
 
-            NotifierError("Unable to get authentication cookie");
-            return CustomResponse();
+            return ErrorResponse("Unable to get authentication cookie");
         }
 
         [HttpPut("information")]
-        [ProducesDefaultResponseType(typeof(ResponseDto))]
-        public async Task<IActionResult> UpdateUserAsync(UpdateUserDto userDto)
+        [ProducesResponseType(typeof(SuccessResponseDto<UserResponseDto>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ErrorResponseDto), StatusCodes.Status400BadRequest)]
+        public async Task<ActionResult<SuccessResponseDto<UserResponseDto>>> UpdateUserAsync(UpdateUserDto userDto)
         {
-            if (!ModelState.IsValid) return CustomResponse(ModelState);
+            if (!ModelState.IsValid) return ErrorResponse(ModelState);
 
             if (Request.Cookies.TryGetValue(_authSettings.AuthCookieName, out var cookieToken))
             {
@@ -62,22 +62,20 @@ namespace English.Net8.Api.Controllers
                 user.Email = User.FindFirst(ClaimTypes.Email)?.Value;
 
                 await _userRepository.ReplaceAsync(user);
-                return CustomResponse();
+
+                return SuccessResponse(UserConverter.ToResponseUser(user));
             }
 
-            NotifierError("Unable to get authentication cookie");
-            return CustomResponse();
+            return ErrorResponse("Unable to get authentication cookie");
         }
 
         [HttpPut("location-closest")]
-        [ProducesDefaultResponseType(typeof(ResponseDto))]
-        public async Task<IActionResult> UpdateUserLocationAsyc(Location location)
+        [ProducesResponseType(typeof(SuccessResponseDto<IEnumerable<UserResponseDto>>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ErrorResponseDto), StatusCodes.Status400BadRequest)]
+        public async Task<ActionResult<SuccessResponseDto<IEnumerable<UserResponseDto>>>> UpdateUserLocationAsyc(Location location)
         {
             if (!LocationValidator.Validate(location))
-            {
-                NotifierError("The location provided is not valid.");
-                return CustomResponse();
-            }
+                return ErrorResponse("The location provided is not valid.");
 
             if (Request.Cookies.TryGetValue(_authSettings.AuthCookieName, out var cookieToken))
             {
@@ -87,43 +85,13 @@ namespace English.Net8.Api.Controllers
 
                 var users = await _userRepository.GetClosestUsersAsync(location);
                 users = users.Where(u => u.Id != id);
-                var usersDto = UserConverter.ToResponseUser(users);
 
                 await _userRepository.UpdateUserLocationAsync(id, location);
-                return CustomResponse(usersDto);
+                return SuccessResponse(UserConverter.ToResponseUser(users));
             }
 
-            NotifierError("Unable to get authentication cookie");
-            return CustomResponse();
+            return ErrorResponse("Unable to get authentication cookie");
         }
-
-        /* 
-         * 
-        [HttpGet("closest")]
-        [ProducesDefaultResponseType(typeof(ResponseDto))]
-        public async Task<IActionResult> GetClosestUsers([FromQuery] Location location)
-        {
-            if (!LocationValidator.Validate(location))
-            {
-                NotifierError("The location provided is not valid.");
-                return CustomResponse();
-            }
-            if (Request.Cookies.TryGetValue(_authSettings.AuthCookieName, out var cookieToken))
-            {
-                var jwt = new JwtSecurityTokenHandler().ReadToken(cookieToken) as JwtSecurityToken;
-                if (!ObjectId.TryParse(jwt.Subject, out var id))
-                    throw new ArgumentNullException(nameof(jwt));
-
-                var users = await _userRepository.GetClosestUsersAsync(location);
-                users = users.Where(u => u.Id != id);
-
-                var usersDto = UserConverter.ToResponseUser(users);
-                return CustomResponse(usersDto);
-            }
-
-            NotifierError("Unable to get authentication cookie");
-            return CustomResponse();
-        } */
     }
 }
 
