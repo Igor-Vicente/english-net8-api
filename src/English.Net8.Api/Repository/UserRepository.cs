@@ -45,10 +45,28 @@ namespace English.Net8.Api.Repository
             }
         }
 
-        public async Task<IEnumerable<User>> GetClosestUsersAsync(Location location)
+        public async Task<IEnumerable<User>> GetClosestUsersAsync(Location location, ObjectId id, int pageNumber, int pageSize)
         {
-            var filter = Builders<User>.Filter.NearSphere(u => u.Location, location.Coordinates.Latitude, location.Coordinates.Longitude);
-            return await _collection.Find(filter).ToListAsync();
+            var filterDefinition = Builders<User>.Filter.NearSphere(u => u.Location, location.Coordinates.Latitude, location.Coordinates.Longitude)
+                & Builders<User>.Filter.Ne(u => u.Id, id);
+
+            return await _collection
+                .Find(filterDefinition)
+                .Skip((pageNumber - 1) * pageSize)
+                .Limit(pageSize)
+                .ToListAsync();
+        }
+
+        public async Task<IEnumerable<User>> GetAllAsync(int pageNumber, int pageSize)
+        {
+            var sortDefinition = Builders<User>.Sort.Ascending(u => u.Name);
+
+            return await _collection
+                .Find(_ => true)
+                .Sort(sortDefinition)
+                .Skip((pageNumber - 1) * pageSize)
+                .Limit(pageSize)
+                .ToListAsync();
         }
     }
 }

@@ -91,7 +91,7 @@ namespace English.Net8.Api.Controllers
             _logger.LogInformation($"User {user.Id} created a new account with password.");
             var code = await _userManager.GenerateEmailConfirmationTokenAsync(account);
             var callbackUrl = Url.EmailConfirmationLink(account.Id.ToString(), code, Request.Scheme);
-            //await _emailSender.SendEmailConfirmationAsync(account.Email, callbackUrl);
+            await _emailSender.SendEmailConfirmationAsync(account.Email, callbackUrl);
 
             var claims = await GetUserClaimsAsync(account);
             var token = GenerateJwt(claims);
