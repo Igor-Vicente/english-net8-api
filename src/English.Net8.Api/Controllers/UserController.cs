@@ -44,6 +44,25 @@ namespace English.Net8.Api.Controllers
             return ErrorResponse("Unable to get authentication cookie");
         }
 
+        [HttpGet("users")]
+        [ProducesResponseType(typeof(SuccessResponseDto<IEnumerable<UserResponseDto>>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ErrorResponseDto), StatusCodes.Status400BadRequest)]
+        public async Task<ActionResult<SuccessResponseDto<IEnumerable<UserResponseDto>>>> GetAllUsersAsync(int pageNumber = 1, int pageSize = 8)
+        {
+            if (Request.Cookies.TryGetValue(_authSettings.AuthCookieName, out var cookieToken))
+            {
+                var jwt = new JwtSecurityTokenHandler().ReadToken(cookieToken) as JwtSecurityToken;
+                if (!ObjectId.TryParse(jwt.Subject, out var id))
+                    throw new ArgumentNullException(nameof(jwt));
+
+                var users = await _userRepository.GetAllAsync(pageNumber, pageSize);
+
+                return SuccessResponse(UserConverter.ToResponseUser(users));
+            }
+
+            return ErrorResponse("Unable to get authentication cookie");
+        }
+
         [HttpPut("information")]
         [ProducesResponseType(typeof(SuccessResponseDto<UserResponseDto>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ErrorResponseDto), StatusCodes.Status400BadRequest)]
@@ -72,7 +91,7 @@ namespace English.Net8.Api.Controllers
         [HttpPut("location-closest")]
         [ProducesResponseType(typeof(SuccessResponseDto<IEnumerable<UserResponseDto>>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ErrorResponseDto), StatusCodes.Status400BadRequest)]
-        public async Task<ActionResult<SuccessResponseDto<IEnumerable<UserResponseDto>>>> UpdateUserLocationAsyc(Location location)
+        public async Task<ActionResult<SuccessResponseDto<IEnumerable<UserResponseDto>>>> UpdateUserLocationAsync(Location location, int pageNumber = 1, int pageSize = 8)
         {
             if (!LocationValidator.Validate(location))
                 return ErrorResponse("The location provided is not valid.");
@@ -83,8 +102,7 @@ namespace English.Net8.Api.Controllers
                 if (!ObjectId.TryParse(jwt.Subject, out var id))
                     throw new ArgumentNullException(nameof(jwt));
 
-                var users = await _userRepository.GetClosestUsersAsync(location);
-                users = users.Where(u => u.Id != id);
+                var users = await _userRepository.GetClosestUsersAsync(location, id, pageNumber, pageSize);
 
                 await _userRepository.UpdateUserLocationAsync(id, location);
                 return SuccessResponse(UserConverter.ToResponseUser(users));

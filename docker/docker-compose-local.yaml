@@ -8,14 +8,12 @@ services:
         build:
             context: ../src
             dockerfile: ./English.Net8.Api/Dockerfile
-        #restart: always            
         environment:
-            ASPNETCORE_ENVIRONMENT: Docker
-            ASPNETCORE_URLS: "https://+:443;http://+:80"
-            ASPNETCORE_Kestrel__Certificates__Default__Password: 9HoGMnb7Lu8NFdHBz4Vq2rtKivzMhmMXhtvuB4TZcLMmbWfFmDQCjJeLURAJ4GYe
-            ASPNETCORE_Kestrel__Certificates__Default__Path: /https/devstore.academy-localhost.pfx
-            LC_ALL: "en_US.UTF-8"
-            LANG: "en_US.UTF-8"
+            ASPNETCORE_ENVIRONMENT: Development
+        restart: always
+        ports:
+            - "5000:8080"
+        
 
 
  
