@@ -23,7 +23,7 @@ namespace English.Net8.Api
             builder.Services.AddIdentityConfiguration(builder.Configuration);
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
-            builder.Services.AddCorsConfiguration();
+            builder.Services.AddCorsConfiguration(builder.Configuration);
             builder.Services.ResolveDependencies();
 
             var app = builder.Build();
