@@ -29,7 +29,7 @@ namespace English.Net8.Api
             var app = builder.Build();
 
             app.UseMiddleware<ExceptionMiddleware>();
-            app.useCors("Production");
+            app.UseCors("Production");
             app.UseSwagger();
             app.UseSwaggerUI();
             app.UseHttpsRedirection();
