@@ -1,7 +1,6 @@
 
 using English.Net8.Api.Configuration;
 using English.Net8.Api.Utils;
-using System.Reflection;
 
 namespace English.Net8.Api
 {
@@ -24,11 +23,13 @@ namespace English.Net8.Api
             builder.Services.AddIdentityConfiguration(builder.Configuration);
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
+            builder.Services.AddCorsConfiguration();
             builder.Services.ResolveDependencies();
 
             var app = builder.Build();
 
             app.UseMiddleware<ExceptionMiddleware>();
+            app.useCors("Production");
             app.UseSwagger();
             app.UseSwaggerUI();
             app.UseHttpsRedirection();
