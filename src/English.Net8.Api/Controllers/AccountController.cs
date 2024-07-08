@@ -129,7 +129,7 @@ namespace English.Net8.Api.Controllers
                 Secure = true,
                 IsEssential = true,
                 SameSite = SameSiteMode.None,
-                Domain = Request.RequestUri.Host
+                Domain = Request.Url.Host
             });
             HttpContext.Response.Cookies.Append(_authSettings.ExpiresCookieName, Guid.NewGuid().ToString(), new CookieOptions
             {
@@ -138,7 +138,7 @@ namespace English.Net8.Api.Controllers
                 Secure = true,
                 IsEssential = true,
                 SameSite = SameSiteMode.None,
-                Domain = Request.RequestUri.Host
+                Domain = Request.Url.Host
             });
             return SuccessResponse();
         }
@@ -176,7 +176,7 @@ namespace English.Net8.Api.Controllers
                 Secure = true,
                 IsEssential = true,
                 SameSite = SameSiteMode.None,
-                Domain = Request.RequestUri.Host
+                Domain = Request.Url.Host
             });
             HttpContext.Response.Cookies.Append(_authSettings.ExpiresCookieName, Guid.NewGuid().ToString(), new CookieOptions
             {
@@ -185,7 +185,7 @@ namespace English.Net8.Api.Controllers
                 Secure = true,
                 IsEssential = true,
                 SameSite = SameSiteMode.None,
-                Domain = Request.RequestUri.Host
+                Domain = Request.Url.Host
             });
         }
         private static long ToUnixEpochDate(DateTime date)
