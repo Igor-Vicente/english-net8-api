@@ -7,7 +7,7 @@
         public DateTime? BirthDate { get; set; }
         public string? Phone { get; set; }
         public string? Bio { get; set; }
-        public string? AvatarUrl { get; set; }
+        public string? ContactMeOn { get; set; }
         public string? City { get; set; }
         public Location? Location { get; set; }
     }

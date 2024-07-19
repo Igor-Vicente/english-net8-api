@@ -9,7 +9,7 @@ namespace English.Net8.Api.Utils
         {
             return new UserResponseDto
             {
-                AvatarUrl = user.AvatarUrl,
+                ContactMeOn = user.ContactMeOn,
                 Bio = user.Bio,
                 BirthDate = user.BirthDate,
                 City = user.City,
@@ -37,7 +37,7 @@ namespace English.Net8.Api.Utils
         {
             return new User
             {
-                AvatarUrl = updateUserDto.AvatarUrl,
+                ContactMeOn = updateUserDto.ContactMeOn,
                 Bio = updateUserDto.Bio,
                 BirthDate = updateUserDto.BirthDate,
                 City = updateUserDto.City,
