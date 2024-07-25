@@ -1,5 +1,6 @@
 ﻿using English.Net8.Api.Models;
 using MongoDB.Bson;
+using MongoDB.Driver;
 
 namespace English.Net8.Api.Repository.Interfaces
 {
@@ -11,5 +12,6 @@ namespace English.Net8.Api.Repository.Interfaces
         Task ReplaceAsync(User user);
         Task UpdateUserLocationAsync(ObjectId userId, Location newLocation);
         Task<IEnumerable<User>> GetClosestUsersAsync(Location location, ObjectId id, int pageNumber, int pageSize);
+        Task<DeleteResult> DeleteUserByIdAsync(ObjectId userId);
     }
 }

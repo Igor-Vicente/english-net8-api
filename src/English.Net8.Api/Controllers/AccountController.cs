@@ -68,6 +68,9 @@ namespace English.Net8.Api.Controllers
             if (result.IsLockedOut)
                 return ErrorResponse("The user has been temporarily blocked due to invalid attempts");
 
+            if (result.IsNotAllowed)
+                return ErrorResponse("Your account has not been confirmed, you cannot proceed");
+
             return ErrorResponse("Username or password is invalid");
         }
 
@@ -79,7 +82,7 @@ namespace English.Net8.Api.Controllers
         {
             if (!ModelState.IsValid) return ErrorResponse(ModelState);
 
-            var user = new User { Name = registerDto.Name, Email = registerDto.Email };
+            var user = new User { Name = registerDto.Name, Email = registerDto.Email, IsAdmin = false, IsPremium = false };
             var account = new MongoUser { Id = user.Id, UserName = registerDto.Email, Email = registerDto.Email, EmailConfirmed = false };
 
             var result = await _userManager.CreateAsync(account, registerDto.Password);
@@ -117,29 +120,77 @@ namespace English.Net8.Api.Controllers
             return SuccessResponse();
         }
 
+        [AllowAnonymous]
+        [HttpPost("forgot-password")]
+        [ProducesResponseType(typeof(SuccessResponseDto<string>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ErrorResponseDto), StatusCodes.Status400BadRequest)]
+        public async Task<ActionResult<SuccessResponseDto<string>>> ForgotPassword(ForgotPasswordDto model)
+        {
+            if (!ModelState.IsValid) return ErrorResponse(ModelState);
+
+            var user = await _userManager.FindByEmailAsync(model.Email);
+            if (user == null || !(await _userManager.IsEmailConfirmedAsync(user)))
+            {
+                // Don't reveal that the user does not exist or is not confirmed
+                return SuccessResponse("Please check your email to reset your password.");
+            }
+            var code = await _userManager.GeneratePasswordResetTokenAsync(user);
+            await _emailSender.SendEmailAsync(model.Email, "Reset Password",
+               $"Code: <strong> {code} </strong>");
+
+            return SuccessResponse("Please check your email to reset your password.");
+        }
+
+
+        [AllowAnonymous]
+        [HttpPost("reset-password")]
+        [ProducesResponseType(typeof(SuccessResponseDto<string>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ErrorResponseDto), StatusCodes.Status400BadRequest)]
+        public async Task<ActionResult<SuccessResponseDto<string>>> ResetPassword(ResetPasswordDto model)
+        {
+            if (!ModelState.IsValid) return ErrorResponse(ModelState);
+
+            var user = await _userManager.FindByEmailAsync(model.Email);
+            if (user == null)
+            {
+                // Don't reveal that the user does not exist
+                return SuccessResponse("Your password has been reset.");
+            }
+
+            var result = await _userManager.ResetPasswordAsync(user, model.Code, model.Password);
+            if (result.Succeeded)
+            {
+                return SuccessResponse("Your password has been reset.");
+            }
+
+            return ErrorResponse(result.Errors.Select(e => e.Description));
+        }
+
 
         [HttpGet("logout")]
         [ProducesResponseType(typeof(SuccessResponseDto), StatusCodes.Status200OK)]
         public async Task<ActionResult<SuccessResponseDto>> Logout()
         {
-            HttpContext.Response.Cookies.Append(_authSettings.AuthCookieName, "", new CookieOptions
-            {
-                Expires = DateTime.UtcNow.AddMinutes(-1),
-                HttpOnly = true,
-                Secure = true,
-                IsEssential = true,
-                SameSite = SameSiteMode.None,
-                Domain = Request.Host.Host
-            });
-            HttpContext.Response.Cookies.Append(_authSettings.ExpiresCookieName, Guid.NewGuid().ToString(), new CookieOptions
-            {
-                Expires = DateTime.UtcNow.AddMinutes(-1),
-                HttpOnly = false,
-                Secure = true,
-                IsEssential = true,
-                SameSite = SameSiteMode.None,
-                Domain = Request.Host.Host
-            });
+            SetLogoutCookiesResponse();
+            return SuccessResponse();
+        }
+
+        [HttpDelete]
+        [ProducesResponseType(typeof(SuccessResponseDto), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ErrorResponseDto), StatusCodes.Status400BadRequest)]
+        public async Task<ActionResult<SuccessResponseDto>> Delete()
+        {
+            var user = await _userManager.GetUserAsync(User);
+
+            if (user == null) return ErrorResponse("The user was not found");
+
+            var result = await _userManager.DeleteAsync(user);
+            if (!result.Succeeded)
+                return ErrorResponse(result.Errors.Select(e => e.Description));
+
+            await _userRepository.DeleteUserByIdAsync(user.Id);
+
+            SetLogoutCookiesResponse();
             return SuccessResponse();
         }
 
@@ -181,6 +232,27 @@ namespace English.Net8.Api.Controllers
             HttpContext.Response.Cookies.Append(_authSettings.ExpiresCookieName, Guid.NewGuid().ToString(), new CookieOptions
             {
                 Expires = DateTime.UtcNow.AddMinutes(_authSettings.ExpiresMinutes),
+                HttpOnly = false,
+                Secure = true,
+                IsEssential = true,
+                SameSite = SameSiteMode.None,
+                Domain = Request.Host.Host
+            });
+        }
+        private void SetLogoutCookiesResponse()
+        {
+            HttpContext.Response.Cookies.Append(_authSettings.AuthCookieName, "", new CookieOptions
+            {
+                Expires = DateTime.UtcNow.AddMinutes(-1),
+                HttpOnly = true,
+                Secure = true,
+                IsEssential = true,
+                SameSite = SameSiteMode.None,
+                Domain = Request.Host.Host
+            });
+            HttpContext.Response.Cookies.Append(_authSettings.ExpiresCookieName, Guid.NewGuid().ToString(), new CookieOptions
+            {
+                Expires = DateTime.UtcNow.AddMinutes(-1),
                 HttpOnly = false,
                 Secure = true,
                 IsEssential = true,

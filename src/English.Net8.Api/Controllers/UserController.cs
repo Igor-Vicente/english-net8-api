@@ -63,7 +63,8 @@ namespace English.Net8.Api.Controllers
             return ErrorResponse("Unable to get authentication cookie");
         }
 
-        [HttpPut("information")]
+        //[ClaimsAuthorize("IsPremium", "true")]
+        [HttpPut("details")]
         [ProducesResponseType(typeof(SuccessResponseDto<UserResponseDto>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ErrorResponseDto), StatusCodes.Status400BadRequest)]
         public async Task<ActionResult<SuccessResponseDto<UserResponseDto>>> UpdateUserAsync(UpdateUserDto userDto)

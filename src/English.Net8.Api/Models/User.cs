@@ -7,8 +7,11 @@
         public DateTime? BirthDate { get; set; }
         public string? Phone { get; set; }
         public string? Bio { get; set; }
-        public string? ContactMeOn { get; set; }
         public string? City { get; set; }
+        public string? ContactMeOn { get; set; }
+        public string Hobbies { get; set; }
+        public bool IsPremium { get; set; }
+        public bool IsAdmin { get; set; }
         public Location? Location { get; set; }
     }
 

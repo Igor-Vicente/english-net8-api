@@ -68,5 +68,11 @@ namespace English.Net8.Api.Repository
                 .Limit(pageSize)
                 .ToListAsync();
         }
+
+        public async Task<DeleteResult> DeleteUserByIdAsync(ObjectId userId)
+        {
+            var filter = Builders<User>.Filter.Eq("_id", userId);
+            return await _collection.DeleteOneAsync(filter);
+        }
     }
 }

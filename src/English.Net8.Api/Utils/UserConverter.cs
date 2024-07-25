@@ -18,6 +18,9 @@ namespace English.Net8.Api.Utils
                 Location = user.Location,
                 Name = user.Name,
                 Phone = user.Phone,
+                IsPremium = user.IsPremium,
+                IsAdmin = user.IsAdmin,
+                Hobbies = user.Hobbies,
             };
         }
 
@@ -43,6 +46,7 @@ namespace English.Net8.Api.Utils
                 City = updateUserDto.City,
                 Name = updateUserDto.Name,
                 Phone = updateUserDto.Phone,
+                Hobbies = updateUserDto.Hobbies,
             };
         }
     }

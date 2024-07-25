@@ -22,6 +22,9 @@ namespace English.Net8.Api.Dtos
 
         [MaxLength(50)]
         public string? City { get; set; }
+
+        [MaxLength(50)]
+        public string? Hobbies { get; set; }
     }
 
     public class UserResponseDto
@@ -32,8 +35,11 @@ namespace English.Net8.Api.Dtos
         public DateTime? BirthDate { get; set; }
         public string? Phone { get; set; }
         public string? Bio { get; set; }
-        public string? ContactMeOn { get; set; }
         public string? City { get; set; }
+        public string? ContactMeOn { get; set; }
+        public string Hobbies { get; set; }
+        public bool IsPremium { get; set; }
+        public bool IsAdmin { get; set; }
         public Location? Location { get; set; }
     }
 }
