@@ -17,6 +17,9 @@
         public string AccountsCollection { get; set; }
         public string RolesCollection { get; set; }
         public string UsersCollection { get; set; }
+        public string QuestionsCollection { get; set; }
+        public string QuestionTopicsCollection { get; set; }
+        public string UserAnswersCollection { get; set; }
     }
 
     public class EmailProviderSettings

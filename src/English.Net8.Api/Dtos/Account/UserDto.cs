@@ -1,7 +1,7 @@
 ﻿using English.Net8.Api.Models;
 using System.ComponentModel.DataAnnotations;
 
-namespace English.Net8.Api.Dtos
+namespace English.Net8.Api.Dtos.Account
 {
     public class UpdateUserDto
     {

@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace English.Net8.Api.Dtos
+namespace English.Net8.Api.Dtos.Account
 {
     public class ForgotPasswordDto
     {

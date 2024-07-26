@@ -9,7 +9,7 @@ namespace English.Net8.Api.Configuration
         public static IServiceCollection ResolveDependencies(this IServiceCollection services)
         {
             services.AddSingleton<IUserRepository, UserRepository>();
-
+            services.AddSingleton<IQuestionRepository, QuestionRepository>();
             services.AddSingleton<IEmailSender, EmailSender>();
 
             return services;

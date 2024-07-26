@@ -1,4 +1,4 @@
-﻿using English.Net8.Api.Dtos;
+﻿using English.Net8.Api.Dtos.Account;
 using English.Net8.Api.Models;
 
 namespace English.Net8.Api.Utils
