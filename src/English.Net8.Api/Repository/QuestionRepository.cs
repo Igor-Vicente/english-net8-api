@@ -22,15 +22,7 @@ namespace English.Net8.Api.Repository
             _topicsCollection = db.GetCollection<QuestionTopics>(mongoSettings.Value.QuestionTopicsCollection);
             _userAnswersCollection = db.GetCollection<UserAnswer>(mongoSettings.Value.UserAnswersCollection);
         }
-
-        public async Task<IEnumerable<QuestionTopics>> GetAllTopics()
-        {
-            var sortDefinition = Builders<QuestionTopics>.Sort.Ascending(t => t.Topic);
-
-            return await _topicsCollection.Find(_ => true).Sort(sortDefinition).ToListAsync();
-        }
-
-        public async Task<List<OutQuestionDto>> GetFilteredQuestions(ObjectId userId, FilterQuestionDto filter)
+        public async Task<OutQuestionDto> GetFilteredQuestion(ObjectId userId, FilterQuestionDto filter, IEnumerable<ObjectId> seenQuestionIds)
         {
             var filterDefinition = Builders<Question>.Filter.And(
                 Builders<Question>.Filter.Eq(q => q.Topic, filter.Topic),
@@ -45,29 +37,31 @@ namespace English.Net8.Api.Repository
                     .ToListAsync();
 
                 var answeredQuestionIds = userAnswers.Select(ua => ua.QuestionId).ToList();
+
                 filterDefinition &= Builders<Question>.Filter.In(q => q.Id, answeredQuestionIds);
+                filterDefinition &= Builders<Question>.Filter.Nin(q => q.Id, seenQuestionIds);
 
-                var questions = await _questionsCollection.Find(filterDefinition).ToListAsync();
+                var question = await _questionsCollection.Find(filterDefinition).FirstOrDefaultAsync();
 
-                return questions.Select(q =>
+                if (question == null) return null;
+
+                var userAnswer = userAnswers.FirstOrDefault(ua => ua.QuestionId == question.Id);
+
+                return new OutQuestionDto
                 {
-                    var userAnswer = userAnswers.FirstOrDefault(ua => ua.QuestionId == q.Id);
-                    return new OutQuestionDto
-                    {
-                        Id = q.Id.ToString(),
-                        Header = q.Header,
-                        Alternatives = q.Alternatives,
-                        Difficulty = q.Difficulty,
-                        Type = q.Type,
-                        CreatedAt = q.CreatedAt,
-                        RightAnswer = q.RightAnswer,
-                        Explanation = q.Explanation,
-                        Topic = q.Topic,
-                        Subtopics = q.Subtopics,
-                        UserAnswerId = userAnswer!.UserAnswerId,
-                        AnsweredAt = userAnswer!.AnsweredAt
-                    };
-                }).ToList();
+                    Id = question.Id.ToString(),
+                    Header = question.Header,
+                    Alternatives = question.Alternatives,
+                    Difficulty = question.Difficulty,
+                    Type = question.Type,
+                    CreatedAt = question.CreatedAt,
+                    RightAnswer = question.RightAnswer,
+                    Explanation = question.Explanation,
+                    Topic = question.Topic,
+                    Subtopics = question.Subtopics,
+                    UserAnswerId = userAnswer!.UserAnswerId,
+                    AnsweredAt = userAnswer!.AnsweredAt
+                };
             }
             else
             {
@@ -80,25 +74,29 @@ namespace English.Net8.Api.Repository
 
                 var question = await _questionsCollection.Find(filterDefinition).FirstOrDefaultAsync();
 
-                if (question == null) return new List<OutQuestionDto>();
+                if (question == null) return null;
 
-                return new List<OutQuestionDto>
+                return new OutQuestionDto
                 {
-                    new OutQuestionDto
-                    {
-                        Id = question.Id.ToString(),
-                        Header = question.Header,
-                        Alternatives = question.Alternatives,
-                        Difficulty = question.Difficulty,
-                        Type = question.Type,
-                        CreatedAt = question.CreatedAt,
-                        RightAnswer = question.RightAnswer,
-                        Explanation = question.Explanation,
-                        Topic = question.Topic,
-                        Subtopics = question.Subtopics,
-                    }
+                    Id = question.Id.ToString(),
+                    Header = question.Header,
+                    Alternatives = question.Alternatives,
+                    Difficulty = question.Difficulty,
+                    Type = question.Type,
+                    CreatedAt = question.CreatedAt,
+                    RightAnswer = question.RightAnswer,
+                    Explanation = question.Explanation,
+                    Topic = question.Topic,
+                    Subtopics = question.Subtopics,
                 };
             }
+        }
+
+        public async Task<IEnumerable<QuestionTopics>> GetAllTopics()
+        {
+            var sortDefinition = Builders<QuestionTopics>.Sort.Ascending(t => t.Topic);
+
+            return await _topicsCollection.Find(_ => true).Sort(sortDefinition).ToListAsync();
         }
 
         public async Task AddUserAnswer(UserAnswer userAnswers)
@@ -106,7 +104,7 @@ namespace English.Net8.Api.Repository
             await _userAnswersCollection.InsertOneAsync(userAnswers);
         }
 
-        public async Task<bool> CheckUserAlreadyAnsweredQuestion(ObjectId userId, ObjectId questionId)
+        public async Task<bool> CheckUserAlreadyAnswerTheQuestion(ObjectId userId, ObjectId questionId)
         {
             var filter = Builders<UserAnswer>.Filter.And(
                 Builders<UserAnswer>.Filter.Eq(ua => ua.UserId, userId),

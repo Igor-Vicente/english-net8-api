@@ -30,17 +30,25 @@ namespace English.Net8.Api.Controllers
         }
 
         [HttpGet("filtered")]
-        [ProducesResponseType(typeof(SuccessResponseDto<List<OutQuestionDto>>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(SuccessResponseDto<OutQuestionDto>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ErrorResponseDto), StatusCodes.Status400BadRequest)]
-        public async Task<ActionResult<SuccessResponseDto<List<OutQuestionDto>>>> GetQuestion([FromQuery] FilterQuestionDto filter)
+        public async Task<ActionResult<SuccessResponseDto<OutQuestionDto>>> GetQuestion([FromQuery] FilterQuestionDto filter, [FromHeader] IEnumerable<string> seenQuestionIds)
         {
             if (!ModelState.IsValid) return ErrorResponse(ModelState);
 
             if (!ObjectId.TryParse(User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier).Value, out var userId))
-                return Unauthorized();
+                return ErrorResponse("Invalid userId");
 
-            var questions = await _questionRepository.GetFilteredQuestions(userId, filter);
-            return SuccessResponse(questions);
+            var seenQuestionObjectIds = new List<ObjectId>();
+            foreach (var questionIdString in seenQuestionIds)
+            {
+                if (!ObjectId.TryParse(questionIdString, out var questionId))
+                    return ErrorResponse($"{questionIdString} could not be converted to a questionId");
+                seenQuestionObjectIds.Add(questionId);
+            }
+
+            var question = await _questionRepository.GetFilteredQuestion(userId, filter, seenQuestionObjectIds);
+            return SuccessResponse(question);
         }
 
         [HttpPost("answer")]
@@ -56,7 +64,7 @@ namespace English.Net8.Api.Controllers
             if (!ObjectId.TryParse(userAnswerDto.QuestionId, out var questionId))
                 return ErrorResponse("Invalid questionId");
 
-            var alreadyAnswered = await _questionRepository.CheckUserAlreadyAnsweredQuestion(userId, questionId);
+            var alreadyAnswered = await _questionRepository.CheckUserAlreadyAnswerTheQuestion(userId, questionId);
 
             if (alreadyAnswered)
                 return ErrorResponse("This question has alreaby been answered by the user");

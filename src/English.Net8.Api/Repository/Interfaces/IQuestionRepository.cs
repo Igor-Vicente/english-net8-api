@@ -7,9 +7,9 @@ namespace English.Net8.Api.Repository.Interfaces
     public interface IQuestionRepository
     {
         Task<IEnumerable<QuestionTopics>> GetAllTopics();
-        Task<List<OutQuestionDto>> GetFilteredQuestions(ObjectId userId, FilterQuestionDto filter);
+        Task<OutQuestionDto> GetFilteredQuestion(ObjectId userId, FilterQuestionDto filter, IEnumerable<ObjectId> seenQuestionObjectIds);
         Task AddNewQuestionAsync(Question question);
         Task AddUserAnswer(UserAnswer userAnswers);
-        Task<bool> CheckUserAlreadyAnsweredQuestion(ObjectId userId, ObjectId questionId);
+        Task<bool> CheckUserAlreadyAnswerTheQuestion(ObjectId userId, ObjectId questionId);
     }
 }
