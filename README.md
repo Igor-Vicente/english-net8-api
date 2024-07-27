@@ -24,3 +24,61 @@ Using the Stopwatch class to measure the elapsed time:
    _logger.LogWarning(stopwatch.Elapsed.ToString());
 
 ```
+
+## Template add new question
+
+```C#
+{
+  "header": "The cat is hiding ___ the table.",
+  "alternatives": [
+    {
+      "id": 1,
+      "content": "under"
+    },
+    {
+      "id": 2,
+      "content": "on"
+    },
+    {
+      "id": 3,
+      "content": "in"
+    },
+    {
+      "id": 4,
+      "content": "by"
+    },
+    {
+      "id": 5,
+      "content": "at"
+    }
+  ],
+  "difficulty": 1,
+  "type": 1,
+  "rightAnswer": 1,
+  "explanation": "not added yet",
+  "topic": "prepositions",
+  "subtopics": [
+    "all"
+  ]
+}
+```
+
+## Index MongoDb
+
+be careful with lower and uppercase letters
+
+```javascript
+db.Questions.createIndex({ topic: 1, subtopics: 1, difficulty: 1 });
+```
+
+```javascript
+db.UserAnswers.createIndex({ userId: 1 });
+```
+
+```javascript
+db.Questions.explain("executionStats").find({
+  topic: "condicionais",
+  subtopics: "clauses",
+  difficulty: 1,
+});
+```

@@ -1,4 +1,6 @@
-﻿namespace English.Net8.Api.Models
+﻿using System.ComponentModel.DataAnnotations;
+
+namespace English.Net8.Api.Models
 {
     public class Question : Entity
     {
@@ -15,7 +17,9 @@
 
     public class Alternative
     {
+        [Required]
         public int Id { get; set; }
+        [Required]
         public string Content { get; set; }
     }
 
