@@ -70,7 +70,7 @@ namespace English.Net8.Api.Repository
                     .Project(ua => ua.QuestionId)
                     .ToListAsync();
 
-                filterDefinition &= Builders<Question>.Filter.Nin(q => q.Id, answeredQuestionIds);
+                filterDefinition &= Builders<Question>.Filter.Nin(q => q.Id, answeredQuestionIds.Concat(seenQuestionIds));
 
                 var question = await _questionsCollection.Find(filterDefinition).FirstOrDefaultAsync();
 
