@@ -6,6 +6,7 @@ using English.Net8.Api.Utils;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using MongoDB.Bson;
+using System.Security.Claims;
 using static English.Net8.Api.Utils.CustomAuthorize;
 
 namespace English.Net8.Api.Controllers
@@ -36,7 +37,7 @@ namespace English.Net8.Api.Controllers
         {
             if (!ModelState.IsValid) return ErrorResponse(ModelState);
 
-            if (!ObjectId.TryParse(User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier).Value, out var userId))
+            if (!ObjectId.TryParse(User.FindFirst(ClaimTypes.NameIdentifier).Value, out var userId))
                 return ErrorResponse("Invalid userId");
 
             var seenQuestionObjectIds = new List<ObjectId>();
@@ -58,7 +59,7 @@ namespace English.Net8.Api.Controllers
         {
             if (!ModelState.IsValid) return ErrorResponse(ModelState);
 
-            if (!ObjectId.TryParse(User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier).Value, out var userId))
+            if (!ObjectId.TryParse(User.FindFirst(ClaimTypes.NameIdentifier).Value, out var userId))
                 return ErrorResponse("Invalid userId");
 
             if (!ObjectId.TryParse(userAnswerDto.QuestionId, out var questionId))

@@ -9,7 +9,7 @@ namespace English.Net8.Api.Utils
             if (!Enum.TryParse(location.Type, false, out GeoJsonType _))
                 return false;
 
-            Validate(location.Coordinates);
+            if (!Validate(location.Coordinates)) return false;
 
             return true;
         }

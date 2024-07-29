@@ -42,4 +42,9 @@ namespace English.Net8.Api.Dtos.Account
         public bool IsAdmin { get; set; }
         public Location? Location { get; set; }
     }
+
+    public class UserResponseWithDistanceDto : UserResponseDto
+    {
+        public double Distance { get; set; }
+    }
 }

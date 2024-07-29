@@ -15,6 +15,11 @@
         public Location? Location { get; set; }
     }
 
+    public class UserWithDistance : User
+    {
+        public double Distance { get; set; }
+    }
+
     public class Location
     {
         public string Type { get; set; }
