@@ -76,9 +76,58 @@ db.UserAnswers.createIndex({ userId: 1 });
 ```
 
 ```javascript
+db.Users.createIndex({ location: "2dsphere" });
+```
+
+```javascript
 db.Questions.explain("executionStats").find({
   topic: "condicionais",
   subtopics: "clauses",
   difficulty: 1,
 });
+```
+
+## Schema MongoDb collections
+
+UserAnswers Validation
+
+```javascript
+{
+  $jsonSchema: {
+    bsonType: 'object',
+    required: [
+      'userId',
+      'questionId',
+      'userAnswerId'
+    ],
+    properties: {
+      userId: {
+        bsonType: 'objectId',
+        description: 'must be an ObjectId and is required'
+      },
+      questionId: {
+        bsonType: 'objectId',
+        description: 'must be an ObjectId and is required'
+      },
+      userAnswerId: {
+        bsonType: 'int',
+        minimum: 1,
+        maximum: 5,
+        description: 'must be an integer between 1 and 5'
+      },
+      answeredAt: {
+        bsonType: 'date',
+        description: 'must be a date'
+      },
+      questionDifficulty: {
+        bsonType: 'int',
+        description: 'must be an integer'
+      },
+      hasSucceed: {
+        bsonType: 'bool',
+        description: 'must be a boolean'
+      }
+    }
+  }
+}
 ```
