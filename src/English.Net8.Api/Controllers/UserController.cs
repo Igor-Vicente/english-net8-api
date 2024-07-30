@@ -79,7 +79,6 @@ namespace English.Net8.Api.Controllers
         [ProducesResponseType(typeof(ErrorResponseDto), StatusCodes.Status400BadRequest)]
         public async Task<ActionResult<SuccessResponseDto<IEnumerable<UserResponseWithDistanceDto>>>> GetAllUsersWithDistanceAsync([FromQuery] Location location, bool closest, int pageNumber = 1, int pageSize = 10)
         {
-            Thread.Sleep(1000);
             if (pageNumber <= 0 || pageSize <= 0)
                 return ErrorResponse("The page params is not valid.");
 

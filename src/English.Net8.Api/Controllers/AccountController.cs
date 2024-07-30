@@ -26,6 +26,7 @@ namespace English.Net8.Api.Controllers
         private readonly UserManager<MongoUser> _userManager;
         private readonly SignInManager<MongoUser> _signInManager;
         private readonly IUserRepository _userRepository;
+        private readonly IQuestionRepository _questionRepository;
         private readonly ILogger<AccountController> _logger;
         private readonly AuthSettings _authSettings;
         private readonly IEmailSender _emailSender;
@@ -35,7 +36,8 @@ namespace English.Net8.Api.Controllers
                                  ILogger<AccountController> logger,
                                  IOptions<AuthSettings> authSettings,
                                  IEmailSender emailSender,
-                                 IUserRepository userRepository)
+                                 IUserRepository userRepository,
+                                 IQuestionRepository questionRepository)
         {
             _userManager = userManager;
             _signInManager = signInManager;
@@ -43,6 +45,7 @@ namespace English.Net8.Api.Controllers
             _authSettings = authSettings.Value;
             _emailSender = emailSender;
             _userRepository = userRepository;
+            _questionRepository = questionRepository;
         }
 
         [AllowAnonymous]
@@ -168,7 +171,7 @@ namespace English.Net8.Api.Controllers
         }
 
 
-        [HttpGet("logout")]
+        [HttpPost("logout")]
         [ProducesResponseType(typeof(SuccessResponseDto), StatusCodes.Status200OK)]
         public async Task<ActionResult<SuccessResponseDto>> Logout()
         {
@@ -181,15 +184,16 @@ namespace English.Net8.Api.Controllers
         [ProducesResponseType(typeof(ErrorResponseDto), StatusCodes.Status400BadRequest)]
         public async Task<ActionResult<SuccessResponseDto>> Delete()
         {
-            var user = await _userManager.GetUserAsync(User);
+            var account = await _userManager.GetUserAsync(User);
 
-            if (user == null) return ErrorResponse("The user was not found");
+            if (account == null) return ErrorResponse("The user was not found");
 
-            var result = await _userManager.DeleteAsync(user);
-            if (!result.Succeeded)
-                return ErrorResponse(result.Errors.Select(e => e.Description));
+            var deleteAccount = await _userManager.DeleteAsync(account);
+            if (!deleteAccount.Succeeded)
+                return ErrorResponse(deleteAccount.Errors.Select(e => e.Description));
 
-            await _userRepository.DeleteUserByIdAsync(user.Id);
+            await _questionRepository.DeleteUserAnswersByUserIdAsync(account.Id);
+            await _userRepository.DeleteUserByIdAsync(account.Id);
 
             SetLogoutCookiesResponse();
             return SuccessResponse();

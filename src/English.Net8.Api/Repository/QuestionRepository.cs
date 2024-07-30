@@ -104,6 +104,12 @@ namespace English.Net8.Api.Repository
             await _userAnswersCollection.InsertOneAsync(userAnswers);
         }
 
+        public async Task<DeleteResult> DeleteUserAnswersByUserIdAsync(ObjectId userId)
+        {
+            var filter = Builders<UserAnswer>.Filter.Eq(ua => ua.UserId, userId);
+            return await _userAnswersCollection.DeleteManyAsync(filter);
+        }
+
         public async Task<bool> CheckUserAlreadyAnswerTheQuestion(ObjectId userId, ObjectId questionId)
         {
             var filter = Builders<UserAnswer>.Filter.And(

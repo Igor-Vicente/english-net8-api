@@ -1,6 +1,7 @@
 ﻿using English.Net8.Api.Dtos.Question;
 using English.Net8.Api.Models;
 using MongoDB.Bson;
+using MongoDB.Driver;
 
 namespace English.Net8.Api.Repository.Interfaces
 {
@@ -11,5 +12,6 @@ namespace English.Net8.Api.Repository.Interfaces
         Task AddNewQuestionAsync(Question question);
         Task AddUserAnswer(UserAnswer userAnswers);
         Task<bool> CheckUserAlreadyAnswerTheQuestion(ObjectId userId, ObjectId questionId);
+        Task<DeleteResult> DeleteUserAnswersByUserIdAsync(ObjectId userId);
     }
 }
