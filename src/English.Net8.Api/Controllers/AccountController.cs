@@ -11,6 +11,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
+using MongoDB.Bson;
 using Store.MongoDb.Identity.Models;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
@@ -133,16 +134,19 @@ namespace English.Net8.Api.Controllers
             if (!ModelState.IsValid) return ErrorResponse(ModelState);
 
             var user = await _userManager.FindByEmailAsync(model.Email);
-            if (user == null || !(await _userManager.IsEmailConfirmedAsync(user)))
+            if (user == null)
             {
                 // Don't reveal that the user does not exist or is not confirmed
-                return SuccessResponse("Please check your email to reset your password.");
+                return SuccessResponse("Please check your email to reset the password.");
             }
-            var code = await _userManager.GeneratePasswordResetTokenAsync(user);
-            await _emailSender.SendEmailAsync(model.Email, "Reset Password",
-               $"Code: <strong> {code} </strong>");
 
-            return SuccessResponse("Please check your email to reset your password.");
+            var code = await _userManager.GeneratePasswordResetTokenAsync(user);
+            var callbackUrl = Url.ResetPasswordLink(_authSettings.AcceptedDomainsCors, user.Id.ToString(), code);
+            await _emailSender.SendEmailAsync(model.Email, "Reset Password",
+               $"Hello 👋\r\n, <br /><br />You can click <a href='{callbackUrl}'>here</a> to reset your password. <br /><br />" +
+               $"If you didn’t ask to reset your password, you can ignore this message. <br /> Thanks, good studies 👋\r\n");
+
+            return SuccessResponse("Please check your email to reset the password.");
         }
 
 
@@ -154,20 +158,20 @@ namespace English.Net8.Api.Controllers
         {
             if (!ModelState.IsValid) return ErrorResponse(ModelState);
 
-            var user = await _userManager.FindByEmailAsync(model.Email);
+            if (!ObjectId.TryParse(model.UserId, out var userId))
+                return ErrorResponse("The link used is not valid");
+
+            var user = await _userManager.FindByIdAsync(model.UserId);
+
             if (user == null)
-            {
-                // Don't reveal that the user does not exist
-                return SuccessResponse("Your password has been reset.");
-            }
+                return ErrorResponse("The link used is not valid");
 
             var result = await _userManager.ResetPasswordAsync(user, model.Code, model.Password);
-            if (result.Succeeded)
-            {
-                return SuccessResponse("Your password has been reset.");
-            }
 
-            return ErrorResponse(result.Errors.Select(e => e.Description));
+            if (!result.Succeeded)
+                return ErrorResponse(result.Errors.Select(e => e.Description));
+
+            return SuccessResponse("Your password has been reset.");
         }
 
 
