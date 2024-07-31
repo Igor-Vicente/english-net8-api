@@ -8,7 +8,7 @@
         public string Audience { get; set; }
         public string AuthCookieName { get; set; }
         public string ExpiresCookieName { get; set; }
-        public string AcceptedDomainsCors { get; set; }
+        public string ClientDomain { get; set; }
     }
     public class MongoSettings
     {

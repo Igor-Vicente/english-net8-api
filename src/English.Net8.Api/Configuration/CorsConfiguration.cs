@@ -13,7 +13,7 @@ namespace English.Net8.Api.Configuration
                 builder
                 .AllowAnyMethod()
                 .AllowAnyHeader()
-                .WithOrigins(authSettings.AcceptedDomainsCors.Split(','))
+                .WithOrigins(authSettings.ClientDomain)
                 .AllowCredentials());
             });
 
