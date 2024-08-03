@@ -9,7 +9,14 @@
         public string AuthCookieName { get; set; }
         public string ExpiresCookieName { get; set; }
         public string ClientDomain { get; set; }
+        public Google Google { get; set; }
     }
+    public class Google
+    {
+        public string ClientId { get; set; }
+        public string ClientSecret { get; set; }
+    }
+
     public class MongoSettings
     {
         public string DatabaseName { get; set; }

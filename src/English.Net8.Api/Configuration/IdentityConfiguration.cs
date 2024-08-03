@@ -36,7 +36,7 @@ namespace English.Net8.Api.Configuration
             return services;
         }
 
-        public static void SetIdentityOptions(IdentityOptions options)
+        private static void SetIdentityOptions(IdentityOptions options)
         {
             options.SignIn.RequireConfirmedAccount = false;
 
@@ -55,19 +55,6 @@ namespace English.Net8.Api.Configuration
             //By default, the token's lifetime is set to 1 day (24 hours).
             options.Tokens.EmailConfirmationTokenProvider = TokenOptions.DefaultProvider;
             options.Tokens.PasswordResetTokenProvider = TokenOptions.DefaultProvider;
-        }
-
-        public static void SetIdentityOptionsTest(IdentityOptions options)
-        {
-            options.Password.RequiredLength = 1;
-            options.Password.RequiredUniqueChars = 0;
-            options.Password.RequireLowercase = false;
-            options.Password.RequireUppercase = false;
-            options.Password.RequireDigit = false;
-            options.Password.RequireNonAlphanumeric = false;
-            options.Lockout.MaxFailedAccessAttempts = 5;
-            options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(20);
-            options.User.RequireUniqueEmail = true;
         }
 
         private static void SetJwtOptions(JwtBearerOptions options, AuthSettings authSettings)

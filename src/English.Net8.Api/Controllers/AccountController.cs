@@ -5,6 +5,7 @@ using English.Net8.Api.Extensions;
 using English.Net8.Api.Models;
 using English.Net8.Api.Repository.Interfaces;
 using English.Net8.Api.Services.Mailing;
+using English.Net8.Api.Services.RestRequest;
 using English.Net8.Api.Utils;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
@@ -28,25 +29,25 @@ namespace English.Net8.Api.Controllers
         private readonly SignInManager<MongoUser> _signInManager;
         private readonly IUserRepository _userRepository;
         private readonly IQuestionRepository _questionRepository;
-        private readonly ILogger<AccountController> _logger;
         private readonly AuthSettings _authSettings;
         private readonly IEmailSender _emailSender;
+        private readonly IApisGoogleService _googleApis;
 
         public AccountController(UserManager<MongoUser> userManager,
                                  SignInManager<MongoUser> signInManager,
-                                 ILogger<AccountController> logger,
                                  IOptions<AuthSettings> authSettings,
                                  IEmailSender emailSender,
                                  IUserRepository userRepository,
-                                 IQuestionRepository questionRepository)
+                                 IQuestionRepository questionRepository,
+                                 IApisGoogleService googleApis)
         {
             _userManager = userManager;
             _signInManager = signInManager;
-            _logger = logger;
             _authSettings = authSettings.Value;
             _emailSender = emailSender;
             _userRepository = userRepository;
             _questionRepository = questionRepository;
+            _googleApis = googleApis;
         }
 
         [AllowAnonymous]
@@ -87,23 +88,21 @@ namespace English.Net8.Api.Controllers
         {
             if (!ModelState.IsValid) return ErrorResponse(ModelState);
 
-            var user = new User { Name = registerDto.Name, Email = registerDto.Email, IsAdmin = false, IsPremium = false };
-            var account = new MongoUser { Id = user.Id, UserName = registerDto.Email, Email = registerDto.Email, EmailConfirmed = false };
+            var user = new User { Name = registerDto.Name, Email = registerDto.Email };
+            var account = new MongoUser { Id = user.Id, UserName = registerDto.Email, Email = registerDto.Email };
 
             var result = await _userManager.CreateAsync(account, registerDto.Password);
-
             if (!result.Succeeded)
                 return ErrorResponse(result.Errors.Select(e => e.Description));
-
             await _userRepository.InsertAsync(user);
-            _logger.LogInformation($"User {user.Id} created a new account with password.");
+
             var code = await _userManager.GenerateEmailConfirmationTokenAsync(account);
             var callbackUrl = Url.EmailConfirmationLink(account.Id.ToString(), code, Request.Scheme);
             await _emailSender.SendEmailConfirmationAsync(account.Email, callbackUrl);
 
             var claims = await GetUserClaimsAsync(account);
-            var token = GenerateJwt(claims);
-            SetCookiesInResponse(token);
+            var jwt = GenerateJwt(claims);
+            SetCookiesInResponse(jwt);
             return SuccessResponse(UserConverter.ToResponseUser(user));
         }
 
@@ -121,7 +120,7 @@ namespace English.Net8.Api.Controllers
             if (user == null)
                 throw new ApplicationException($"Unable to find the user with ID '{userId}'.");
 
-            var result = await _userManager.ConfirmEmailAsync(user, code);
+            await _userManager.ConfirmEmailAsync(user, code);
             return SuccessResponse();
         }
 
@@ -139,9 +138,8 @@ namespace English.Net8.Api.Controllers
 
             var code = await _userManager.GeneratePasswordResetTokenAsync(user);
             var callbackUrl = Url.ResetPasswordLink(_authSettings.ClientDomain, user.Id.ToString(), code);
-            await _emailSender.SendEmailAsync(model.Email, "Reset Password",
-               $"Hello 👋\r\n, <br /><br />You can click <a href='{callbackUrl}'>here</a> to reset your password. <br /><br />" +
-               $"If you didn’t ask to reset your password, you can ignore this message. <br /> Thanks, good studies 👋\r\n");
+
+            await _emailSender.SendEmailResetPasswordAsync(model.Email, callbackUrl);
 
             return SuccessResponse("Please check your email to reset the password.");
         }
@@ -161,7 +159,7 @@ namespace English.Net8.Api.Controllers
             var user = await _userManager.FindByIdAsync(model.UserId);
 
             if (user == null)
-                return ErrorResponse("The link used is not valid");
+                throw new ApplicationException($"Unable to find the user with ID '{userId}'.");
 
             var result = await _userManager.ResetPasswordAsync(user, model.Code, model.Password);
 
@@ -171,6 +169,42 @@ namespace English.Net8.Api.Controllers
             return SuccessResponse("Your password has been reset.");
         }
 
+        [AllowAnonymous]
+        [HttpPost("google-login")]
+        [ProducesResponseType(typeof(SuccessResponseDto<UserResponseDto>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ErrorResponseDto), StatusCodes.Status400BadRequest)]
+        public async Task<ActionResult<SuccessResponseDto<UserResponseDto>>> ExternalGoogleLogin([FromBody] string code)
+        {
+            var token = await _googleApis.ExchangeCodeForTokenAsync(code, _authSettings.ClientDomain, _authSettings.Google.ClientId, _authSettings.Google.ClientSecret);
+            var userGoogle = await _googleApis.GetUserInfoAsync(token.AccessToken);
+
+            var loginInfo = new UserLoginInfo("Google", userGoogle.Sub, "Google");
+            var account = await _userManager.FindByLoginAsync(loginInfo.LoginProvider, loginInfo.ProviderKey);
+            User user;
+            if (account == null)
+            {
+                account = await _userManager.FindByEmailAsync(userGoogle.Email);
+                if (account == null)
+                {
+                    user = new User { Name = userGoogle.Name, Email = userGoogle.Email };
+                    account = new MongoUser { Id = user.Id, UserName = userGoogle.Email, Email = userGoogle.Email, EmailConfirmed = userGoogle.EmailVerified };
+
+                    var result = await _userManager.CreateAsync(account);
+                    if (!result.Succeeded)
+                        return ErrorResponse(result.Errors.Select(e => e.Description));
+
+                    await _userRepository.InsertAsync(user);
+                }
+                await _userManager.AddLoginAsync(account, loginInfo);
+            }
+
+            var claims = await GetUserClaimsAsync(account);
+            var jwt = GenerateJwt(claims);
+            SetCookiesInResponse(jwt);
+
+            user = await _userRepository.FindByIdAsync(account.Id);
+            return SuccessResponse(UserConverter.ToResponseUser(user));
+        }
 
         [HttpPost("logout")]
         [ProducesResponseType(typeof(SuccessResponseDto), StatusCodes.Status200OK)]

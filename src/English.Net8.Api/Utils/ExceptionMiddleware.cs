@@ -1,6 +1,4 @@
-﻿using System.Net;
-
-namespace English.Net8.Api.Utils
+﻿namespace English.Net8.Api.Utils
 {
     public class ExceptionMiddleware
     {
@@ -19,16 +17,21 @@ namespace English.Net8.Api.Utils
             {
                 await _next(context);
             }
+            catch (HttpRequestException ex)
+            {
+                await HandleExceptionAsync(context, ex, (int)ex.StatusCode);
+            }
             catch (Exception ex)
             {
                 await HandleExceptionAsync(context, ex);
             }
         }
 
-        private Task HandleExceptionAsync(HttpContext context, Exception ex)
+        private Task HandleExceptionAsync(HttpContext context, Exception ex, int statusCode = 500)
         {
             _logger.LogError(ex.Message);
-            context.Response.StatusCode = (int)HttpStatusCode.InternalServerError;
+
+            context.Response.StatusCode = statusCode;
             return Task.CompletedTask;
         }
     }
