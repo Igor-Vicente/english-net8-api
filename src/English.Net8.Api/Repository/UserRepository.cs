@@ -32,31 +32,21 @@ namespace English.Net8.Api.Repository
         public async Task UpdateAsync(User user)
         {
             var filter = Builders<User>.Filter.Eq(u => u.Id, user.Id);
-            var update = Builders<User>.Update.Combine();
 
-            if (!string.IsNullOrEmpty(user.Name))
-                update = update.Set(u => u.Name, user.Name);
+            var update = Builders<User>.Update.Combine(
+                new List<UpdateDefinition<User>>
+                {
+                    Builders<User>.Update.Set(u => u.Name, user.Name),
+                    Builders<User>.Update.Set(u => u.BirthDate, user.BirthDate),
+                    Builders<User>.Update.Set(u => u.Phone, user.Phone),
+                    Builders<User>.Update.Set(u => u.Bio, user.Bio),
+                    Builders<User>.Update.Set(u => u.City, user.City),
+                    Builders<User>.Update.Set(u => u.ContactMeOn, user.ContactMeOn),
+                    Builders<User>.Update.Set(u => u.Hobbies, user.Hobbies)
+                }
+            );
 
-            if (user.BirthDate.HasValue)
-                update = update.Set(u => u.BirthDate, user.BirthDate);
-
-            if (!string.IsNullOrEmpty(user.Phone))
-                update = update.Set(u => u.Phone, user.Phone);
-
-            if (!string.IsNullOrEmpty(user.Bio))
-                update = update.Set(u => u.Bio, user.Bio);
-
-            if (!string.IsNullOrEmpty(user.City))
-                update = update.Set(u => u.City, user.City);
-
-            if (!string.IsNullOrEmpty(user.ContactMeOn))
-                update = update.Set(u => u.ContactMeOn, user.ContactMeOn);
-
-            if (!string.IsNullOrEmpty(user.Hobbies))
-                update = update.Set(u => u.Hobbies, user.Hobbies);
-
-            if (update != Builders<User>.Update.Combine())
-                await _collection.UpdateOneAsync(filter, update);
+            await _collection.UpdateOneAsync(filter, update);
         }
 
         public async Task UpdateUserLocationAsync(User user, Location newLocation)

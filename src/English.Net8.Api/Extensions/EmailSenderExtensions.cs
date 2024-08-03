@@ -14,7 +14,7 @@ namespace English.Net8.Api.Extensions
         public static Task SendEmailResetPasswordAsync(this IEmailSender emailSender, string email, string link)
         {
             return emailSender.SendEmailAsync(email, "Reset Password",
-               $"Hello 👋\r\n, <br /><br />You can click <a href='{link}'>here</a> to reset your password. <br /><br />" +
+               $"Hi, <br /><br />You can click <a href='{link}'>here</a> to reset your password. <br /><br />" +
                $"If you didn’t ask to reset your password, you can ignore this message. <br /> Thanks, good studies 👋\r\n");
         }
     }
