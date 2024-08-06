@@ -62,7 +62,7 @@ namespace English.Net8.Api.Controllers
             if (result.Succeeded)
             {
                 var account = await _userManager.FindByEmailAsync(loginDto.Email);
-                var user = await _userRepository.FindByIdAsync(account.Id);
+                var user = await _userRepository.FindByIdAsync(account!.Id);
 
                 var claims = await GetUserClaimsAsync(account);
                 var token = GenerateJwt(claims);
@@ -208,7 +208,7 @@ namespace English.Net8.Api.Controllers
 
         [HttpPost("logout")]
         [ProducesResponseType(typeof(SuccessResponseDto), StatusCodes.Status200OK)]
-        public async Task<ActionResult<SuccessResponseDto>> Logout()
+        public ActionResult<SuccessResponseDto> Logout()
         {
             SetLogoutCookiesResponse();
             return SuccessResponse();
@@ -253,7 +253,7 @@ namespace English.Net8.Api.Controllers
         {
             var claims = await _userManager.GetClaimsAsync(user);
             claims.Add(new Claim(JwtRegisteredClaimNames.Sub, user.Id.ToString()));
-            claims.Add(new Claim(JwtRegisteredClaimNames.Email, user.Email));
+            claims.Add(new Claim(JwtRegisteredClaimNames.Email, user.Email!));
             claims.Add(new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()));
             claims.Add(new Claim(JwtRegisteredClaimNames.Nbf, ToUnixEpochDate(DateTime.UtcNow).ToString()));
             claims.Add(new Claim(JwtRegisteredClaimNames.Iat, ToUnixEpochDate(DateTime.UtcNow).ToString(), ClaimValueTypes.Integer64));

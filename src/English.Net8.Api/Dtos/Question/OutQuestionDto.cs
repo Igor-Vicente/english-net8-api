@@ -7,7 +7,7 @@ namespace English.Net8.Api.Dtos.Question
         public string Id { get; set; }
         public string Header { get; set; }
         public Alternative[] Alternatives { get; set; }
-        public Difficulty Difficulty { get; set; }
+        public EnglishLevel Difficulty { get; set; }
         public QuestionType Type { get; set; }
         public DateTime CreatedAt { get; set; }
         public int RightAnswer { get; set; }

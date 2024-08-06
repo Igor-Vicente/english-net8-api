@@ -41,12 +41,18 @@ namespace English.Net8.Api.Controllers
         {
             if (!ModelState.IsValid) return ErrorResponse(ModelState);
 
+            if (userDto.BirthDate != null && userDto.BirthDate > DateTime.Now)
+                return ErrorResponse("Birthday date cannot be in the future");
+
             if (!ObjectId.TryParse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value, out var userId))
                 return ErrorResponse("Invalid userId");
 
             var user = UserConverter.ToUser(userDto);
             user.Id = userId;
-            user.Email = User.FindFirst(ClaimTypes.Email)?.Value;
+            user.Email = User.FindFirst(ClaimTypes.Email)!.Value;
+
+            if (string.IsNullOrEmpty(user.Email))
+                throw new ApplicationException($"Unable to find the user email '{userId}' 'User.FindFirst(ClaimTypes.Email)!.Value'.");
 
             await _userRepository.UpdateAsync(user);
 

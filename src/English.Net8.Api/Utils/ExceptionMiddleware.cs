@@ -19,7 +19,7 @@
             }
             catch (HttpRequestException ex)
             {
-                await HandleExceptionAsync(context, ex, (int)ex.StatusCode);
+                await HandleExceptionAsync(context, ex, (int)ex.StatusCode!);
             }
             catch (Exception ex)
             {

@@ -10,17 +10,19 @@ namespace English.Net8.Api.Repository
 {
     public class QuestionRepository : IQuestionRepository
     {
+        private readonly ILogger<QuestionRepository> _logger;
         private readonly IMongoCollection<Question> _questionsCollection;
         private readonly IMongoCollection<QuestionTopics> _topicsCollection;
         private readonly IMongoCollection<UserAnswer> _userAnswersCollection;
 
-        public QuestionRepository(IOptions<MongoSettings> mongoSettings)
+        public QuestionRepository(IOptions<MongoSettings> mongoSettings, ILogger<QuestionRepository> logger)
         {
             var client = new MongoClient(mongoSettings.Value.ConnectionString);
             var db = client.GetDatabase(mongoSettings.Value.DatabaseName);
             _questionsCollection = db.GetCollection<Question>(mongoSettings.Value.QuestionsCollection);
             _topicsCollection = db.GetCollection<QuestionTopics>(mongoSettings.Value.QuestionTopicsCollection);
             _userAnswersCollection = db.GetCollection<UserAnswer>(mongoSettings.Value.UserAnswersCollection);
+            _logger = logger;
         }
         public async Task<OutQuestionDto> GetFilteredQuestion(ObjectId userId, FilterQuestionDto filter, IEnumerable<ObjectId> seenQuestionIds)
         {
@@ -41,6 +43,7 @@ namespace English.Net8.Api.Repository
                 filterDefinition &= Builders<Question>.Filter.In(q => q.Id, answeredQuestionIds);
                 filterDefinition &= Builders<Question>.Filter.Nin(q => q.Id, seenQuestionIds);
 
+                _logger.LogInformation(filterDefinition.ToString());
                 var question = await _questionsCollection.Find(filterDefinition).FirstOrDefaultAsync();
 
                 if (question == null) return null;

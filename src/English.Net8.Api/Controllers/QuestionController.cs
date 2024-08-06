@@ -37,7 +37,7 @@ namespace English.Net8.Api.Controllers
         {
             if (!ModelState.IsValid) return ErrorResponse(ModelState);
 
-            if (!ObjectId.TryParse(User.FindFirst(ClaimTypes.NameIdentifier).Value, out var userId))
+            if (!ObjectId.TryParse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value, out var userId))
                 return ErrorResponse("Invalid userId");
 
             var seenQuestionObjectIds = new List<ObjectId>();
@@ -59,7 +59,7 @@ namespace English.Net8.Api.Controllers
         {
             if (!ModelState.IsValid) return ErrorResponse(ModelState);
 
-            if (!ObjectId.TryParse(User.FindFirst(ClaimTypes.NameIdentifier).Value, out var userId))
+            if (!ObjectId.TryParse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value, out var userId))
                 return ErrorResponse("Invalid userId");
 
             if (!ObjectId.TryParse(userAnswerDto.QuestionId, out var questionId))

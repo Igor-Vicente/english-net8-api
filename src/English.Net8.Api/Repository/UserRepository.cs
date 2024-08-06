@@ -29,29 +29,42 @@ namespace English.Net8.Api.Repository
             return await _collection.Find(u => u.Id == id).FirstOrDefaultAsync();
         }
 
+        public async Task ReplaceAsync(User user)
+        {
+            var filter = Builders<User>.Filter.Eq(u => u.Id, user.Id);
+            await _collection.ReplaceOneAsync(filter, user);
+        }
+
         public async Task UpdateAsync(User user)
         {
             var filter = Builders<User>.Filter.Eq(u => u.Id, user.Id);
 
             var update = Builders<User>.Update.Combine(
-                new List<UpdateDefinition<User>>
-                {
+              new List<UpdateDefinition<User>>
+              {
                     Builders<User>.Update.Set(u => u.Name, user.Name),
                     Builders<User>.Update.Set(u => u.BirthDate, user.BirthDate),
+                    Builders<User>.Update.Set(u => u.EnglishLevel, user.EnglishLevel),
                     Builders<User>.Update.Set(u => u.Phone, user.Phone),
                     Builders<User>.Update.Set(u => u.Bio, user.Bio),
-                    Builders<User>.Update.Set(u => u.City, user.City),
-                    Builders<User>.Update.Set(u => u.ContactMeOn, user.ContactMeOn),
-                    Builders<User>.Update.Set(u => u.Hobbies, user.Hobbies)
-                }
-            );
+                    Builders<User>.Update.Set(u => u.CurrentCity, user.CurrentCity),
+                    Builders<User>.Update.Set(u => u.CurrentCountry, user.CurrentCountry),
+                    Builders<User>.Update.Set(u => u.Hobbies, user.Hobbies),
+                    Builders<User>.Update.Set(u => u.PersonalSiteLink, user.PersonalSiteLink),
+                    Builders<User>.Update.Set(u => u.FacebookLink, user.FacebookLink),
+                    Builders<User>.Update.Set(u => u.GithubLink, user.GithubLink),
+                    Builders<User>.Update.Set(u => u.LinkedinLink, user.LinkedinLink),
+                    Builders<User>.Update.Set(u => u.TwitterLink, user.TwitterLink),
+                    Builders<User>.Update.Set(u => u.InstagramLink, user.InstagramLink),
+              }
+          );
 
             await _collection.UpdateOneAsync(filter, update);
         }
 
         public async Task UpdateUserLocationAsync(User user, Location newLocation)
         {
-            if (user.Location != newLocation)
+            if (user.Location! != newLocation)
             {
                 var filter = Builders<User>.Filter.Eq(u => u.Id, user.Id);
                 var update = Builders<User>.Update.Set(u => u.Location, newLocation);
@@ -86,7 +99,7 @@ namespace English.Net8.Api.Repository
                         { "near", new BsonDocument
                             {
                                 { "type", "Point" },
-                                { "coordinates", new BsonArray(new[] { location.Coordinates.Latitude, location.Coordinates.Longitude }) }
+                                { "coordinates", new BsonArray(new[] { location.Coordinates!.Latitude, location.Coordinates.Longitude }) }
                             }
                         },
                         { "distanceField", "distance" },
@@ -121,7 +134,7 @@ namespace English.Net8.Api.Repository
                         { "near", new BsonDocument
                             {
                                 { "type", "Point" },
-                                { "coordinates", new BsonArray(new[] { location.Coordinates.Latitude, location.Coordinates.Longitude }) }
+                                { "coordinates", new BsonArray(new[] { location.Coordinates!.Latitude, location.Coordinates.Longitude }) }
                             }
                         },
                         { "distanceField", "distance" },

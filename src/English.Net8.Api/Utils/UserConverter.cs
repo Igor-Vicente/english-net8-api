@@ -9,36 +9,46 @@ namespace English.Net8.Api.Utils
         {
             return new UserResponseDto
             {
-                ContactMeOn = user.ContactMeOn,
                 Bio = user.Bio,
                 BirthDate = user.BirthDate,
-                City = user.City,
+                CurrentCity = user.CurrentCity,
+                CurrentCountry = user.CurrentCountry,
                 Email = user.Email,
+                EnglishLevel = user.EnglishLevel,
                 Id = user.Id.ToString(),
                 Location = user.Location,
                 Name = user.Name,
                 Phone = user.Phone,
-                IsPremium = user.IsPremium,
-                IsAdmin = user.IsAdmin,
                 Hobbies = user.Hobbies,
+                PersonalSiteLink = user.PersonalSiteLink,
+                FacebookLink = user.FacebookLink,
+                GithubLink = user.GithubLink,
+                InstagramLink = user.InstagramLink,
+                LinkedinLink = user.LinkedinLink,
+                TwitterLink = user.TwitterLink
             };
         }
         public static UserResponseWithDistanceDto ToResponseUser(UserWithDistance userWithDistance)
         {
             return new UserResponseWithDistanceDto
             {
-                ContactMeOn = userWithDistance.ContactMeOn,
                 Bio = userWithDistance.Bio,
                 BirthDate = userWithDistance.BirthDate,
-                City = userWithDistance.City,
+                CurrentCity = userWithDistance.CurrentCity,
+                CurrentCountry = userWithDistance.CurrentCountry,
                 Email = userWithDistance.Email,
+                EnglishLevel = userWithDistance.EnglishLevel,
                 Id = userWithDistance.Id.ToString(),
                 Location = userWithDistance.Location,
                 Name = userWithDistance.Name,
                 Phone = userWithDistance.Phone,
-                IsPremium = userWithDistance.IsPremium,
-                IsAdmin = userWithDistance.IsAdmin,
                 Hobbies = userWithDistance.Hobbies,
+                PersonalSiteLink = userWithDistance.PersonalSiteLink,
+                FacebookLink = userWithDistance.FacebookLink,
+                GithubLink = userWithDistance.GithubLink,
+                InstagramLink = userWithDistance.InstagramLink,
+                LinkedinLink = userWithDistance.LinkedinLink,
+                TwitterLink = userWithDistance.TwitterLink,
                 Distance = Math.Ceiling(userWithDistance.Distance),
             };
         }
@@ -71,13 +81,20 @@ namespace English.Net8.Api.Utils
         {
             return new User
             {
-                ContactMeOn = updateUserDto.ContactMeOn,
                 Bio = updateUserDto.Bio,
                 BirthDate = updateUserDto.BirthDate,
-                City = updateUserDto.City,
+                CurrentCity = updateUserDto.CurrentCity,
                 Name = updateUserDto.Name,
                 Phone = updateUserDto.Phone,
                 Hobbies = updateUserDto.Hobbies,
+                EnglishLevel = updateUserDto.EnglishLevel,
+                PersonalSiteLink = updateUserDto.PersonalSiteLink,
+                FacebookLink = updateUserDto.FacebookLink,
+                GithubLink = updateUserDto.GithubLink,
+                InstagramLink = updateUserDto.InstagramLink,
+                LinkedinLink = updateUserDto.LinkedinLink,
+                TwitterLink = updateUserDto.TwitterLink,
+                CurrentCountry = updateUserDto.CurrentCountry,
             };
         }
 

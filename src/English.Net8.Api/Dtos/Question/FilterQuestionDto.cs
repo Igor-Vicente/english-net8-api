@@ -12,8 +12,8 @@ namespace English.Net8.Api.Dtos.Question
         public string Subtopic { get; set; }
 
         [Required]
-        [EnumDataType(typeof(Difficulty))]
-        public Difficulty Difficulty { get; set; }
+        [EnumDataType(typeof(EnglishLevel))]
+        public EnglishLevel Difficulty { get; set; }
 
         [Required]
         public bool AlreadyAnswered { get; set; }

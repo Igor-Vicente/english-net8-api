@@ -14,6 +14,6 @@
         }
 
         public bool Success { get; }
-        public T? Data { get; }
+        public T Data { get; }
     }
 }
