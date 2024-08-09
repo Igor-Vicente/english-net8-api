@@ -6,13 +6,13 @@ services:
         image: english-net8-api:latest
         container_name: english-api
         build:
-            context: ../src
+            context: ../src/English.Net8.Api/
             dockerfile: ./English.Net8.Api/Dockerfile
         environment:
             ASPNETCORE_ENVIRONMENT: Development
         restart: always
         ports:
-            - "5000:8080"
+            - "5000:80"
         
 
 

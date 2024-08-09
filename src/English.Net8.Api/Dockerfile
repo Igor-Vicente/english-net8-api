@@ -1,9 +1,9 @@
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 WORKDIR /src
-COPY ["English.Net8.Api/English.Net8.Api.csproj", "dependencies/"]
+COPY ["English.Net8.Api.csproj", "dependencies/"]
 RUN dotnet restore "dependencies/English.Net8.Api.csproj"
 COPY . .
-WORKDIR English.Net8.Api
+WORKDIR .
 RUN dotnet build -c release -o /app/build
 
 FROM build AS publish

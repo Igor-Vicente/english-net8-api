@@ -32,6 +32,7 @@ namespace English.Net8.Api.Models
     {
         Basic = 1,
         Intermediate = 2,
-        Advanced = 3
+        Advanced = 3,
+        Fluent = 4,
     }
 }

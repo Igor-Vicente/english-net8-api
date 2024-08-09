@@ -68,4 +68,26 @@ namespace English.Net8.Api.Utils
             return ValidationResult.Success!;
         }
     }
+    public class StartsWithAttribute : ValidationAttribute
+    {
+        private readonly string _prefix;
+
+        public StartsWithAttribute(string prefix)
+        {
+            _prefix = prefix;
+        }
+
+        protected override ValidationResult IsValid(object? value, ValidationContext validationContext)
+        {
+            if (value == null || !(value is string) || string.IsNullOrEmpty((string)value))
+                return ValidationResult.Success!;
+
+            string stringValue = (string)value;
+
+            if (!stringValue.StartsWith(_prefix))
+                return new ValidationResult($"The {validationContext.DisplayName} must start with '{_prefix}'.");
+
+            return ValidationResult.Success!;
+        }
+    }
 }

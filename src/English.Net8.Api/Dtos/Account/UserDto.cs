@@ -1,4 +1,5 @@
 ﻿using English.Net8.Api.Models;
+using English.Net8.Api.Utils;
 using System.ComponentModel.DataAnnotations;
 
 namespace English.Net8.Api.Dtos.Account
@@ -11,7 +12,7 @@ namespace English.Net8.Api.Dtos.Account
 
         public DateTime? BirthDate { get; set; }
 
-        [Range(0, 3)]
+        [Range(0, 4)]
         public EnglishLevel EnglishLevel { get; set; }
 
         [MaxLength(14)]
@@ -32,18 +33,23 @@ namespace English.Net8.Api.Dtos.Account
         [MaxLength(100)]
         public string PersonalSiteLink { get; set; } = string.Empty;
 
+        [StartsWith("www.instagram.com")]
         [MaxLength(100)]
         public string InstagramLink { get; set; } = string.Empty;
 
+        [StartsWith("www.github.com")]
         [MaxLength(100)]
         public string GithubLink { get; set; } = string.Empty;
 
+        [StartsWith("www.facebook.com")]
         [MaxLength(100)]
         public string FacebookLink { get; set; } = string.Empty;
 
+        [StartsWith("www.x.com")]
         [MaxLength(100)]
         public string TwitterLink { get; set; } = string.Empty;
 
+        [StartsWith("www.linkedin.com")]
         [MaxLength(100)]
         public string LinkedinLink { get; set; } = string.Empty;
     }
