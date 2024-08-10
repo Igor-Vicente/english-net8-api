@@ -3,16 +3,19 @@ version: '3.8'
 services:
 
     english-net8-api:
-        image: english-net8-api:latest
-        container_name: english-api
+        image: english.net8.api:latest
+        container_name: net8.english.api
         build:
             context: ../src/English.Net8.Api/
-            dockerfile: ./English.Net8.Api/Dockerfile
+            dockerfile: ../src/English.Net8.Api/Dockerfile
         environment:
-            ASPNETCORE_ENVIRONMENT: Development
+            ASPNETCORE_ENVIRONMENT: Production
+            ASPNETCORE_HTTP_PORTS: 80
+            # ASPNETCORE_HTTPS_PORTS: 443
         restart: always
         ports:
-            - "5000:80"
+            - "8080:80"
+            # - "8081:443"
         
 
 

@@ -1,20 +1,30 @@
-## Build the docker image
+## To build the image, follow the command:
 
-- obs: For ease of use, run the commands in the same directory as the yaml file.
+- the command must be used in the directory where the dokerfile is located
 
-To build the image, follow the command:
+* docker build -t <nome_imagem>:<tag> .
+
+```C#
+docker build -t english.net8.api:latest .
+```
+
+## A script using docker compose was written to make it easier to create the image and run the container
+
+- the command must be used in the directory where the dokerfile is located
+
+* to build the image:
 
 ```C#
 docker-compose -f docker-compose-local.yaml build
 ```
 
-To build the image and create the container, follow the command:
+- to build the image and create the container:
 
 ```C#
 docker-compose -f docker-compose-local.yaml -p english-project up -d
 ```
 
-Using the Stopwatch class to measure the elapsed time:
+## Using the Stopwatch class to measure the elapsed time:
 
 ```C#
    var stopwatch = new Stopwatch();

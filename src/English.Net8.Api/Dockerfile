@@ -1,15 +1,23 @@
+FROM mcr.microsoft.com/dotnet/aspnet:8.0 as base
+USER app 
+WORKDIR /app
+EXPOSE 80
+EXPOSE 443
+
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
+ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
-COPY ["English.Net8.Api.csproj", "dependencies/"]
-RUN dotnet restore "dependencies/English.Net8.Api.csproj"
-COPY . .
-WORKDIR .
-RUN dotnet build -c release -o /app/build
+COPY *.csproj ./aspnetapp/
+RUN dotnet restore ./aspnetapp/*.csproj
+COPY . ./aspnetapp/
+WORKDIR ./aspnetapp/
+RUN dotnet build -c $BUILD_CONFIGURATION -o /app/build
 
 FROM build AS publish
-RUN dotnet publish -c release -o /app/publish /p:UseAppHost=false
+ARG BUILD_CONFIGURATION=Release
+RUN dotnet publish -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false
 
-FROM mcr.microsoft.com/dotnet/aspnet:8.0
+FROM base as final
 WORKDIR /app
 COPY --from=publish /app/publish .
 ENTRYPOINT ["dotnet", "English.Net8.Api.dll"]
