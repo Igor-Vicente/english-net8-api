@@ -222,7 +222,7 @@ namespace English.Net8.Api.Controllers
             var account = await _userManager.GetUserAsync(User);
 
             if (account == null)
-                throw new ApplicationException($"Unable to delete account since the user was not found. {HttpContext.Request.Headers}");
+                throw new ApplicationException($"Unable to delete account since the user was not found. {User.FindFirst(ClaimTypes.NameIdentifier)?.Value}");
 
             var deleteAccount = await _userManager.DeleteAsync(account);
             if (!deleteAccount.Succeeded)
